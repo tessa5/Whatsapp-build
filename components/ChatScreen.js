@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import { useAuthState } from "react-firebase-hooks/auth"
 import styled from "styled-components"
 import { auth, db } from "../firebase"
@@ -14,6 +14,7 @@ import TimeAgo from 'timeago-react'
 function ChatScreen({chat, messages}) {
     const [user] = useAuthState(auth);
     const [input, setInput] = useState("")
+    const messageEndRef = useRef(null)
 
     const router = useRouter();
     const [messageSnapshot] = useCollection(db
@@ -47,6 +48,20 @@ function ChatScreen({chat, messages}) {
         }
     }
 
+    const scrollToBottom = () => {
+        if (
+            messageEndRef && messageEndRef.current
+        ) {
+            messageEndRef.current.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+                inline: "start"
+            });
+        }
+        
+        
+    }
+
     const sendMessage =(e) => {
         e.preventDefault();
         db.collection('users').doc(user.uid).set({
@@ -61,6 +76,7 @@ function ChatScreen({chat, messages}) {
         });
 
         setInput("")
+        scrollToBottom()
     }
     
     const recipient = recipientSnapshot?.docs?.[0]?.data();
@@ -100,7 +116,7 @@ function ChatScreen({chat, messages}) {
             </Header>
             <MessageContainer>
                 {showMessage()}
-                <MessageEnd></MessageEnd>
+                <MessageEnd ref={messageEndRef}></MessageEnd>
             </MessageContainer>
             <InputContainer>
                 <InsertEmoticonRounded/>
@@ -157,7 +173,9 @@ const MessageContainer = styled.div `
     background-color: #e5ded8;
 `
 
-const MessageEnd = styled.div ``
+const MessageEnd = styled.div `
+    margin-bottom:300px;
+`
 
 const InputContainer = styled.form `
     display:flex;
